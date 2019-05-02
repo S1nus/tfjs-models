@@ -262,6 +262,31 @@ export function drawMask(
   ctx.restore();
 }
 
+
+export function drawWithBackground(
+    canvas: HTMLCanvasElement, image: ImageType, maskImage: ImageData,
+    maskOpacity = 0.7, maskBlurAmount = 0, flipHorizontal = false) {
+  assertSameDimensions(image, maskImage, 'image', 'mask');
+
+  const mask = renderImageDataToOffScreenCanvas(maskImage, CANVAS_NAMES.mask);
+  const blurredMask = drawAndBlurImageOnOffScreenCanvas(
+      mask, maskBlurAmount, CANVAS_NAMES.blurredMask);
+
+  canvas.width = blurredMask.width;
+  canvas.height = blurredMask.height;
+
+  const ctx = canvas.getContext('2d');
+  ctx.save();
+  if (flipHorizontal) {
+    flipCanvasHorizontal(canvas);
+  }
+
+  ctx.drawImage(image, 0, 0);
+  ctx.globalAlpha = maskOpacity;
+  ctx.drawImage(blurredMask, 0, 0);
+  ctx.restore();
+}
+
 /**
  * Given an image and a maskImage of type ImageData, draws the image with the
  * pixelated mask on top of it onto a canvas.
